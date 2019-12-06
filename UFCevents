@@ -1,4 +1,4 @@
-# This code scrapes the details of every UFC event from the "List of UFC events" Wikipedia page, 
+# This Python code scrapes the details of every UFC event from the "List of UFC events" Wikipedia page, 
 # populates a pandas dataframe with the data, and saves the dataframe to a csv file. 
 
 import requests
@@ -29,7 +29,6 @@ i=0
 for t in events[0]:
     i+=1
     name=t.text_content()
-    print('%d:"%s"'%(i,name))
     col.append((name,[]))
     
 #Since our first row is the header, data is stored from the second row onwards
