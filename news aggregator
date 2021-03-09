@@ -1,0 +1,154 @@
+from bs4 import BeautifulSoup
+import urllib
+import requests
+import re
+import webbrowser
+import os
+
+
+# url definition
+mmafurl = "https://www.mmafighting.com/"
+junkieurl = "https://mmajunkie.usatoday.com/"
+
+# Request
+r1 = requests.get(mmafurl)
+r1.status_code
+r2 = requests.get(junkieurl)
+r2.status_code
+
+# Save the cover page content
+mmafcoverpage = r1.content
+junkiecoverpage = r2.content
+
+# Soup creation
+soup1 = BeautifulSoup(mmafcoverpage, 'html5lib')
+soup2 = BeautifulSoup(junkiecoverpage, 'html5lib')
+
+# Extracting arcticle, coverpage_news1 for mmafighting, 2 and 2a for mmajunkie due to different html tags
+coverpage_news1 = soup1.find_all('h2', class_='c-entry-box--compact__title')
+coverpage_news2 = soup2.find_all('div', class_="hero__article")
+coverpage_news2a = soup2.find_all('div', class_="img-holder none light")
+
+mmafnumber_of_articles =  len(coverpage_news1)
+junkienumber_of_articles =  len(coverpage_news2)+len(coverpage_news2a)
+
+# Initiate lists for links and article titles 
+
+mmaflist_links = [] #mmafighting 
+mmaflist_titles = []
+mmafarticle_titles = []
+junkie_links = [] # mmajunkie top stories
+junkie_links2 = [] # mmajunkie latest news
+junkielist_titles = []
+junkielist_titles2 = []
+junkiearticle_titles = []
+junkiearticle_titles2 = []
+
+#get titles and links from mmafighting content
+for n in range(mmafnumber_of_articles):
+    
+    # Getting the link of the article
+    mmaflink = coverpage_news1[n].find('a')['href']
+    mmaflist_links.append(mmaflink)
+    
+    # Getting the title
+    mmaftitle = coverpage_news1[n].find('a').get_text()
+    mmaflist_titles.append(mmaftitle)
+    
+    # joining letters in titles list to form titles
+for n in range(len(mmaflist_titles)):
+    mmaflist_titles[n]=mmaflist_titles[n].split()
+    mmaftitle_article = " ".join(mmaflist_titles[n])
+    mmafarticle_titles.append(mmaftitle_article)
+    
+    
+# get titles and links from mma junkie content
+for n in range(len(coverpage_news2)):
+        
+    # Getting the link of the article
+    junkielink = coverpage_news2[n].find('a')['href']
+    junkie_links.append(junkielink)
+    
+    # Getting the title
+    junkietitle = coverpage_news2[n].find('a').get_text()
+    junkielist_titles.append(junkietitle)
+    
+    # joining letters in titles list to form titles
+for n in range(len(junkielist_titles)):
+    junkielist_titles[n]=junkielist_titles[n].split()
+    junkietitle_article = " ".join(junkielist_titles[n])
+    junkiearticle_titles.append(junkietitle_article)
+
+for n in range(len(coverpage_news2a)):
+        
+    # Getting the link of the article
+    junkielink = coverpage_news2a[n].find('a')['href']
+    junkie_links2.append(junkielink)
+    
+    # Getting the title
+    junkietitle = coverpage_news2a[n].find('a')['title']
+    junkielist_titles2.append(junkietitle)
+    
+    # joining letters in titles list to form titles
+for n in range(len(junkielist_titles2)):
+    junkielist_titles2[n]=junkielist_titles2[n].split()
+    junkietitle_article = " ".join(junkielist_titles2[n])
+    junkiearticle_titles2.append(junkietitle_article)
+    
+# Embed mmafighting atricle titles in links
+mmaflinks = []
+for i in range(len(mmafarticle_titles)):
+    article = " <a href="+'"'+mmaflist_links[i]+'"'+' target="_blank"'+">"+mmafarticle_titles[i]+"</a> <br />"
+    mmaflinks.append(article)
+mmafhtml = " ".join(mmaflinks)
+
+# create a header for MMAFighting.com articles
+mmafightinghtml = '''<head>
+<style>
+p.ex1 {
+  font-size: 50px;
+}
+</style>
+</head>
+<body>
+<p class="ex1">MMAFighting.com Articles</p>
+</body><br />''' + mmafhtml
+
+# Embed mmajunkie top story atricle titles in links
+junkielinks = []
+for i in range(len(junkiearticle_titles)):
+    article = " <a href="+'"'+junkie_links[i]+'"'+' target="_blank"'+">"+junkiearticle_titles[i]+"</a> <br />"
+    junkielinks.append(article)
+junkiehtml = " ".join(junkielinks)
+
+# create a header for MMA Junkie articles
+mmajunkiehtml = '''<head>
+<style>
+p.ex1 {
+  font-size: 40px;
+}
+</style>
+</head>
+<body>
+<p class="ex1">MMA Junkie Articles</p>
+</body><br />''' + junkiehtml
+
+# Embed mmajunkie latest news atricle titles in links
+junkielinks2 = []
+for i in range(len(junkiearticle_titles2)):
+    article = " <a href="+'"'+junkie_links2[i]+'"'+' target="_blank"'+">"+junkiearticle_titles2[i]+"</a> <br />"
+    junkielinks2.append(article)
+junkiehtml2 = " ".join(junkielinks2)
+
+
+# combine html code from MMAFighting.com and MMA Junkie
+html = mmafightinghtml + mmajunkiehtml + junkiehtml2
+
+# Open the generated html on a new tab of the browser
+# write-html.py
+f = open('helloworld.html','w')
+f.write(html)
+f.close()
+#Change path to reflect file location
+filename = 'file:///'+os.getcwd()+'/' + 'helloworld.html'
+webbrowser.open_new_tab(filename)
